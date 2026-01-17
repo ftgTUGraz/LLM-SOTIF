@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 ------------------------------------------------------------------------------
-Program: Normalized Image Preprocessor
 Description:
     This script resizes images to a standard resolution (maintaining aspect ratio)
     and draws a normalized ruler/grid overlay (green border and ticks) on the

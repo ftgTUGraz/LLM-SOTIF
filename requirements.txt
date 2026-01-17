@@ -1,0 +1,8 @@
+openai
+google-generativeai
+anthropic
+opencv-python
+numpy
+pillow
+colorama
+

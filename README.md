@@ -70,21 +70,21 @@ Qualitative results demonstrating the detection performance of various LLMs on P
 
 ### 3.2 Setup
 1. Clone this repository:
-   ```bash
-   git clone <repository_url>
-   cd BA_Yilin-main
-   ```
-2. Install all required packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. API Key Setup
-It is recommended to set your API keys as environment variables before running the scripts. This avoids passing them as command-line arguments.
 ```bash
-# For Gemini
+git clone <repository_url>
+cd LLM-SOTIF
+```
+2. Install all required packages:
+```bash
+pip install -r requirements.txt
+```
+3. API Key Setup
+It is recommended to set your API keys as environment variables before running the scripts. But passing them as command-line arguments is also possible.
+```bash
+# For Gemini (Google)
 export GOOGLE_API_KEY="your_google_key"
 
-# For Claude
+# For Claude (Anthropic)
 export ANTHROPIC_API_KEY="your_anthropic_key"
 
 # For GPT (OpenAI)
@@ -95,6 +95,12 @@ export HUNYUN_API_KEY="your_hunyuan_key"
 
 # For Qwen (Alibaba)
 export QWEN_API_KEY="your_qwen_key"
+
+# For Grok (xAI)
+export GROK_API_KEY="your_xai_key"
+
+# For Doubao (ByteDance)
+export ARK_API_KEY="your_ark_key"
 ```
 
 ## 4. Operation
@@ -102,16 +108,18 @@ export QWEN_API_KEY="your_qwen_key"
 ### 4.1 Method 1 - Quick Start
 To run a quick object detection test on a single image using GPT-4 (or compatible model):
 ```bash
+cd quick_start
 python quick_start.py path/to/your/image.jpg <YOUR_OPENAI_API_KEY>
 ```
 *Note: Ensure you provide a valid path to an image file.*
 
 ### 4.2 Method 2 - Batch Evaluation
-For processing the entire dataset, you can use the model-specific scripts located in the `autotest_*` directories.
+For processing the entire dataset, you can use the model-specific scripts located in the `object_detector` directories.
 
 All scripts follow the same argument structure:
 
 ```bash
+cd object_detector
 python <model_name>_detector.py --input <path_to_images> --output <path_to_results> [options]
 ```
 
@@ -130,9 +138,6 @@ python <model_name>_detector.py --input <path_to_images> --output <path_to_resul
 ```bash
 python3 gemini_detector.py -i ./data/images -o ./data/labels -m gemini-2.5-pro
 ```
-
-### 4.3 Additional Models (Experimental)
-The project also includes experimental automation for **Doubao**, **Grok**, and **YOLOv11**. These are located in the `BA_Yilin-New` directory and provide extended testing capabilities.
 
 ## 5. Contributing
 Contributions are welcome! Please follow these steps:

@@ -148,10 +148,10 @@ Contributions are welcome! Please follow these steps:
 5.  Open a pull request.
 
 ## 6. Developers
-*   **YONGQI ZHAO**
-*   **JI ZHOU**
-*   **YILIN DING** 
-*   **JIACHEN XU**
+* **YONGQI ZHAO** - [yongqi.zhao@tugraz.at](mailto:yongqi.zhao@tugraz.at)
+* **JI ZHOU** - [ji.zhou@student.tugraz.at](mailto:ji.zhou@student.tugraz.at)
+* **YILIN DING** - [yilin.ding@student.tugraz.at](mailto:yilin.ding@student.tugraz.at)
+* **JIACHEN XU** - [jcxu97@gmail.com](mailto:jcxu97@gmail.com)
 
 ## 7. Acknowledgement
 This work leverages various libraries and models including `opencv-python`, `openai`, `google-generativeai`, and `anthropic`. Special thanks to the developers of these tools.

@@ -142,8 +142,10 @@ def parse_and_save_response(raw_data, output_path):
     and writes the formatted .txt file.
     """
     try:
+        data = json.loads(raw_data)
+        content = data.get("content", "")
         # regex to find the JSON array in case the model adds markdown text around it
-        match = re.search(r"\[.*\]", raw_data, re.DOTALL)
+        match = re.search(r"\[.*\]", content, re.DOTALL)
         if not match:
             print(Fore.RED + Style.BRIGHT + "[X] Error:" + Style.RESET_ALL + " No JSON array found in the raw data.")
             return False

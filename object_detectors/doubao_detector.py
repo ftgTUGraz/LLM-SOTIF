@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
 Description:
-    This script processes a directory of images, sends them to the Tencent
-    Hunyuan Vision API to detect objects (cars, pedestrians, signs, etc.),
-    and assesses if they are safety-critical. The output is saved as a structured
-    text file compatible with label formats (Class X Y W H Safety).
+    This script processes a directory of images, sends them to the ByteDance
+    Doubao Vision API to detect objects (cars, pedestrians,
+    signs, etc.), and assesses if they are safety-critical. The output is saved
+    as a structured text file compatible with label formats (Class X Y W H Safety).
 
     It recursively scans the input directory and mirrors the folder structure
     in the output directory.
 
 Usage:
-    python hunyuan_detector.py --input <path_to_images> --output <path_to_results> [options]
+    python doubao_detector.py --input <path_to_images> --output <path_to_results> [options]
 
 Arguments:
     -i, --input       Path to the root folder containing input images (.jpg).
     -o, --output      Path to the root folder where .txt files will be saved.
-    -m, --model       Hunyuan model version (default: hunyuan-vision)
-    -k, --key         Hunyuan API Key (optional if HUNYUN_API_KEY env var is set)
+    -m, --model       Doubao Endpoint ID (e.g., ep-20240604...).
+    -k, --key         Ark/Doubao API Key (optional if ARK_API_KEY env var is set).
     -l, --limit       Maximum number of images to process (default: 1000).
 """
 
@@ -31,6 +31,7 @@ import numpy as np
 from pathlib import Path
 from colorama import Fore, Style, init
 
+# OpenAI Imports (Used for Doubao/Ark API compatibility)
 from openai import OpenAI, APIError
 
 # colorama for colored terminal output
@@ -63,6 +64,7 @@ Each {} represents an object in the picture. Please adhere strictly to this outp
 Note: Do not include any additional data or keys outside of what has been specified.
 """
 
+
 # -----------------------------------------------------------------------------
 # CORE FUNCTIONS
 # -----------------------------------------------------------------------------
@@ -75,9 +77,9 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode('utf-8')
 
 
-def call_hunyuan(client, image_path, prompt, model, max_retries=3):
+def call_doubao(client, image_path, prompt, model, max_retries=3):
     """
-    Calls the Hunyuan Vision API with exponential backoff for retries.
+    Calls the Doubao/Ark Vision API with exponential backoff for retries.
     """
     retries = 0
     base_delay = 1  # in seconds
@@ -86,7 +88,6 @@ def call_hunyuan(client, image_path, prompt, model, max_retries=3):
         try:
             base64_image = encode_image(image_path)
 
-            # Hunyuan often expects the prompt + image in the "user" role
             response = client.chat.completions.create(
                 model=model,
                 messages=[
@@ -108,14 +109,14 @@ def call_hunyuan(client, image_path, prompt, model, max_retries=3):
                 ],
             )
 
-            # Return the text content directly
+            # Return the content text directly
             return response.choices[0].message.content
 
         except APIError as e:
             retries += 1
             if retries >= max_retries:
                 print(
-                    Fore.RED + Style.BRIGHT + f"[X] Hunyuan API call failed after {max_retries} retries. Final error: {e}")
+                    Fore.RED + Style.BRIGHT + f"[X] Doubao API call failed after {max_retries} retries. Final error: {e}")
                 return None
 
             delay = base_delay * (2 ** retries) + random.uniform(0, 1)
@@ -132,8 +133,8 @@ def call_hunyuan(client, image_path, prompt, model, max_retries=3):
 
 def parse_and_save_response(raw_data, output_path):
     """
-    Parses the response from Hunyuan,
-    validates the schema, and writes the formatted .txt file.
+    Parses the raw JSON string from Doubao, validates the schema,
+    and writes the formatted .txt file.
     """
     try:
         data = json.loads(raw_data)
@@ -142,6 +143,7 @@ def parse_and_save_response(raw_data, output_path):
         match = re.search(r"\[.*\]", content, re.DOTALL)
         if not match:
             print(Fore.RED + Style.BRIGHT + "[X] Error:" + Style.RESET_ALL + " No JSON array found in the raw data.")
+            # print(f"DEBUG raw data: {raw_data}")
             return False
 
         json_array = match.group(0)
@@ -156,6 +158,7 @@ def parse_and_save_response(raw_data, output_path):
                 y = item["y_center"]
                 w = item["width"]
                 l = item["length"]
+                # Ensure safety_critical is int (handle boolean or string input)
                 sc_raw = item["safety_critical"]
                 sc = int(sc_raw) if isinstance(sc_raw, (int, float)) else (1 if sc_raw else 0)
 
@@ -188,24 +191,29 @@ def parse_and_save_response(raw_data, output_path):
 # MAIN LOOP
 # -----------------------------------------------------------------------------
 def main():
-    parser = argparse.ArgumentParser(description="Hunyuan Dashcam Analyzer")
+    parser = argparse.ArgumentParser(description="Doubao Dashcam Analyzer")
     parser.add_argument("--input", "-i", required=True, help="Root input directory containing images")
     parser.add_argument("--output", "-o", required=True, help="Root output directory for text files")
-    parser.add_argument("--model", "-m", default="hunyuan-vision", help="Hunyuan Model ID")
+    parser.add_argument("--model", "-m", default="ep-20240604-xxxxx", help="Doubao Endpoint ID (Volcengine)")
     parser.add_argument("--limit", "-l", type=int, default=1000, help="Max number of images to process")
-    parser.add_argument("--key", "-k", help="Hunyuan API Key (Optional if env var is set)")
+    parser.add_argument("--key", "-k", help="Ark/Doubao API Key (Optional if env var is set)")
 
     args = parser.parse_args()
 
     # setup API key
-    api_key = args.key or os.environ.get("HUNYUN_API_KEY")
+    api_key = args.key or os.environ.get("ARK_API_KEY") or os.environ.get("DOUBAO_API_KEY") or os.environ.get(
+        "OPENAI_API_KEY")
     if not api_key:
-        print(Fore.RED + "Error: API Key not found. Please set HUNYUN_API_KEY environment variable or use --key flag.")
+        print(Fore.RED + "Error: API Key not found. Please set ARK_API_KEY environment variable or use --key flag.")
         return
+
+    # Setup client with Volcengine Ark Base URL
+    # Note: Doubao usually requires a specific Endpoint ID as the model name.
+    base_url = os.environ.get("ARK_BASE_URL", "https://ark.cn-beijing.volces.com/api/v3")
 
     client = OpenAI(
         api_key=api_key,
-        base_url="https://api.hunyuan.cloud.tencent.com/v1"
+        base_url=base_url
     )
 
     input_root = Path(args.input)
@@ -219,12 +227,12 @@ def main():
     process_times = np.array([])
 
     print(Fore.CYAN + Style.BRIGHT + f"Starting Processing...")
-    print(f"Model: {args.model}")
+    print(f"Model (Endpoint): {args.model}")
     print(f"Reading from: {input_root}")
     print(f"Saving to:    {output_root}")
     print("-" * 60)
 
-    # walk through input directory
+    # Walk through input directory
     for root, _, files in os.walk(input_root):
         if processed_count >= args.limit:
             print(Fore.RED + Style.BRIGHT + f"Limit of {args.limit} images reached!")
@@ -252,7 +260,7 @@ def main():
             print(f"Processing: {relative_path}")
 
             call_time_start = time.time()
-            raw_data = call_hunyuan(client, input_file_path, USER_PROMPT, args.model)
+            raw_data = call_doubao(client, input_file_path, USER_PROMPT, args.model)
 
             if raw_data is None:
                 print(Fore.RED + Style.BRIGHT + "[X]" + Style.RESET_ALL + " API response was None. Skipping.")
@@ -284,3 +292,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

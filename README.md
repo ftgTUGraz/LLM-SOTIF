@@ -1,5 +1,10 @@
 # LLM SOTIF Project: Verification of Large Language Models for Autonomous Driving
 
+[![arXiv](https://img.shields.io/badge/arXiv-2601.22830-b31b1b.svg)](https://arxiv.org/abs/2601.22830) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
+> **Paper:** [A Comparative Evaluation of Large Vision-Language Models for 2D Object Detection under SOTIF Conditions](https://arxiv.org/abs/2601.22830)
+
 ## 1. Description
 
 ### 1.1 Project Overview

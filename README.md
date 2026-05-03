@@ -8,7 +8,7 @@
 ## 1. Description
 
 ### 1.1 Project Overview
-**LLM SOTIF Project** is a research tool designed to evaluate the **Safety of the Intended Functionality (SOTIF)** of Multi-modal Large Language Models (LLMs) in the context of autonomous driving. By utilizing state-of-the-art models such as **Gemini 2.5**, **GPT-5**, **Qwen VL**, **Claude Sonnet**, and **Hunyuan**, this project analyzes their object detection capabilities using dashcam footage. The tool calculates key metrics including **Recall**, **Precision**, and **Intersection over Union (IoU)** to quantify the reliability and potential safety risks of deploying these models in real-world driving scenarios.
+**LLM SOTIF Project** is a research tool designed to evaluate the **Safety of the Intended Functionality (SOTIF)** of Multi-modal Large Language Models (LLMs) in the context of autonomous driving. By utilizing state-of-the-art models such as **Gemini 2.5**, **GPT-5**, **Qwen VL**, **Claude Sonnet**, and **Hunyuan**. We also include the open source **RT-DETRv4-L** model, but without fine-tuning. This project analyzes their object detection capabilities using dashcam footage. The tool calculates key metrics including **Recall**, **Precision**, and **Intersection over Union (IoU)** to quantify the reliability and potential safety risks of deploying these models in real-world driving scenarios.
 
 ![LLM SOTIF Framework](image/LLM_SOTIF.png)
 
@@ -35,18 +35,20 @@ Gemini 3; ⑥ GPT 5; ⑦ Qwen; ⑧ Claude; ⑨ Doubao; ⑩ Hunyuan. Metrics: ❶
 ### 2.3 Whole Set Metrics
 *Dataset: 1126 images, IoU Threshold: 0.5*
 
-| Model | Recall | Precision | IoU | Recall < 0.1 (Count) | mmAP@50:95 | Avg Time (s) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Gemini 3-202512** | 0.666 | 0.695 | 0.5 | 55 | 0.407 | 54.00 |
-| **Gemini 2.5 pro** | 0.430 | 0.446 | 0.5 | 254 | 0.1344 | 17.66 |
-| **Gemini 2.5 flash** | 0.249 | 0.253 | 0.5 | 532 | 0.0935 | 16.48 |
-| **GPT 5-0810** | 0.275 | 0.272 | 0.5 | 479 | 0.0882 | 64.00 |
-| **Qwen vl max** | 0.046 | 0.058 | 0.5 | 998 | 0.0144 | 12.02 |
-| **Claude Sonnet 4-20250514** | 0.030 | 0.040 | 0.5 | 1048 | 0.0089 | 5.28 |
-| **Hunyuan t1 vision-20250619**| 0.091 | 0.127 | 0.5 | 890 | 0.0377 | 34.38 |
-| **doubao-seed-1-6-vision-250815** | 0.5464 | 0.5340 | 0.5 | 275 | 0.2432 | 5.39 |
-| **Grok 2-vision-1212** | 0.0717 | 0.0728 | 0.5 | 918 | 0.0179 | 5.97 |
-| **Grok 4-0709** | 0.1768 | 0.1672 | 0.5 | 690 | 0.0561 | 5.55 |
+| Model                             | Recall | Precision | IoU | Recall < 0.1 (Count) | mmAP@50:95 | Avg Time (s) |
+|:----------------------------------| :--- | :--- | :--- | :--- | :--- |:-------------|
+| **Gemini 3-202512**               | 0.666 | 0.695 | 0.5 | 55 | 0.407 | 54.00        |
+| **Gemini 2.5 pro**                | 0.430 | 0.446 | 0.5 | 254 | 0.1344 | 17.66        |
+| **Gemini 2.5 flash**              | 0.249 | 0.253 | 0.5 | 532 | 0.0935 | 16.48        |
+| **GPT 5-0810**                    | 0.275 | 0.272 | 0.5 | 479 | 0.0882 | 64.00        |
+| **Qwen vl max**                   | 0.046 | 0.058 | 0.5 | 998 | 0.0144 | 12.02        |
+| **Claude Sonnet 4-20250514**      | 0.030 | 0.040 | 0.5 | 1048 | 0.0089 | 5.28         |
+| **Hunyuan t1 vision-20250619**    | 0.091 | 0.127 | 0.5 | 890 | 0.0377 | 34.38        |
+| **doubao-seed-1-6-vision-250815** | 0.5464 | 0.5340 | 0.5 | 275 | 0.2432 | 5.39         |
+| **Grok 2-vision-1212**            | 0.0717 | 0.0728 | 0.5 | 918 | 0.0179 | 5.97         |
+| **Grok 4-0709**                   | 0.1768 | 0.1672 | 0.5 | 690 | 0.0561 | 5.55         |
+| **RT-DETRv4-L**                   | 0.6421 | 0.6022 | 0.5 | 122 | 0.4199 | -            |
+ Note: RT-DETRv4 result excludes 3 classes.
 
 ### 2.4 Robustness Analysis
 We analyze model performance across different subsets of the PeSOTIF dataset to evaluate robustness against environmental factors, object rarity, and data source.
@@ -143,6 +145,22 @@ python <model_name>_detector.py --input <path_to_images> --output <path_to_resul
 ```bash
 python3 gemini_detector.py -i ./data/images -o ./data/labels -m gemini-2.5-pro
 ```
+### 4.3 RT-DETRv4
+RT-DETRv4 is a real-time transformer-based object detector that uses end-to-end,
+NMS-free detection with training-time knowledge distillation from a DINOv3 vision
+foundation model. For full architecture details, see the
+[official repository](https://github.com/RT-DETRs/RT-DETRv4).
+
+This configuration was evaluated on the PeSOTIF dataset:
+
+**RT-DETRv4 (Raw) — Zero-shot transfer**
+
+The pretrained RT-DETRv4-L was applied directly to PeSOTIF without fine-tuning.
+Since the model was trained on COCO's 80 classes, the output is post-processed by
+`filter_coco_to_pesotif.py`, which discards predictions for classes outside the
+PeSOTIF label space and remaps the remaining COCO indices to the 11-class PeSOTIF
+scheme. This covers 8 of 11 target classes — rider, traffic_sign, and traffic_cone
+have no COCO equivalent and cannot be detected in this configuration.
 
 ## 5. Contributing
 Contributions are welcome! Please follow these steps:
